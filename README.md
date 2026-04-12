@@ -52,9 +52,11 @@ I want to deepen my understanding of implementing neural networks from scratch i
 
 ### Maddy
 
-## Risk Statement (TODO)
+## Risk Statement
 
-What are two things that could potentially stop you from achieving the full deliverable above? Maybe it turns out that the pattern you thought would be present in the data just doesn’t exist? Or maybe your idea requires more computational power than is available to you? What particular risks might be applicable for your project?
+1. Small dataset size (~650 samples) may not be enough for neural network approaches. With only 26 seasons of weekly labels, overfitting is a serious concern, and the feedforward neural network may not outperform logistic regression.
+
+2. The bestsnow.net condition grades are curated by a single analyst and may contain inconsistencies over a 26-year span. The grading methodology may have shifted subtly over time, and the grades reflect expert-skier preferences (valuing off-piste powder) that don't generalize to all skier types. If the labels are too noisy, no model will achieve strong performance.
 
 ## Ethics Statement (TODO)
 
