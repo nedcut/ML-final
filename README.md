@@ -22,35 +22,35 @@ Describe your motivation for your project idea. Some (shortened) examples of goo
 - Algorithmic bias is an increasingly urgent challenge as machine learning products proliferate, and we want to explore it more deeply.
 - You should be more specific than these: describe your specific data set (if applicable); your scientific questions; the type of decisions your model could inform; etc.
 
-## Planned Deliverables (TODO)
+## Planned Deliverables
 
-Concisely state what you are aiming to create and what capabilities it will have. For most projects, I would expect the deliverable to include:
+**Full success:**
+- A python package containing a complete pipeline: data collection, feature engineering, and model training/evaluation.
+- Custom torch implementations of logistic regression and a feedforward neural network, with no use of scikit-learn or other pre-built model libraries. Possibly other models, like a CNN
+- A jupyter notebook demonstrating the full pipeline, including exploratory data analysis, model comparisons, and visualizations.
 
-- A Python package containing all code used for algorithms and analysis, including documentation.
-- At least one Jupyter notebook illustrating the use of the package to analyze data.
+**Partial success:**
+- Even if the more powerful models don't outperform logistic regression, which is plausible with our slightly smaller dataset, our deliverable should still include the full data pipeline, the logistic regression baseline with experiments, and an analysis of why the simpler model wins.
 
-However, your specific idea might imply different deliverables (e.g. an essay). Consult with me if you’re not sure.
+## Resources Required
 
-You should describe what your deliverable will be able to do and how you will evaluate its effectiveness. **Please consider two scenarios:**
+**Data sources (all freely accessible):**
 
-- “Full success.” What will your deliverable be if everything works out for you exactly as you plan?
-- “Partial success.” What useful deliverable will you be able to offer even if things don’t 100% work out? For example, maybe you aren’t able to get that webapp together, but you can still create a code repository that showcases the machine learning pipeline needed to use to support the app. Have a contingency plan!
-Written Deliverables
-You’ll also write a blog post on your project; you don’t have to discuss this post in your proposal though.
+1. Open-Meteo Historical Weather API (open-meteo.com/en/docs/historical-weather-api): Free access to ERA5 reanalysis weather data at any lat/lon coordinate going back to 1940. Returns daily temperature, precipitation, snowfall, snow depth, wind speed, humidity in JSON format.
 
-## Resources Required (TODO)
+2. bestsnow.net Vermont Snow Conditions Chart (bestsnow.net/vrmthist.htm): A table of weekly condition grades (A/B/C/D/R) for Vermont ski conditions, covering 26 seasons (1999-2000 through 2024-25), yielding ~650 labeled data points. Grades are based on terrain openness and snow surface quality (powder/packed powder vs. hardpack/ice vs. rain). 
 
-What resources do you need in order to complete your project? Data? Computing power? An account with a specific service?
-
-Please pay special attention to the question of data. If your project idea involves data, include at least one link to a data set you can use. If you can’t find data for your original idea, that’s ok! Think of something related to your group’s interests for which you can find data.
-
-If you link to a data set in your proposal, you must check that it has the required information you’ll need. In particular, if you are doing a prediction problem, your data set must include both features and targets (or you must describe a plan to gather your targets separately).
-
-Most projects should involve data in some way, but certain projects may not require data. Ask me if you’re not sure.
+**Compute:** Laptops should be fine, colab possibly. I (Ned) also have a PC with an Nvidia GPU that I can use if needed.
 
 ## What You Will Learn (TODO)
 
 In this section, please state what each group member intends to learn through working on the project. You might be thinking of certain algorithms, software packages, version control, project management, effective teamwork, etc.
+
+### Ned
+
+I want to deepen my understanding of implementing neural networks from scratch in torch, particularly around the practical challenges of training on small datasets (regularization, class imbalance, overfitting). I also want to learn how to build a clean data pipeline that scrapes, cleans, and aligns data from multiple sources and formats. On the ML theory side, I'm interested in exploring when neural networks actually help over logistic regression and whether ordinal structure in the target variable can be exploited.
+
+### Maddy
 
 ## Risk Statement (TODO)
 
