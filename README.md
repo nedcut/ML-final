@@ -21,9 +21,9 @@ This project will help students and skiers who visit the mountain make more info
 ## Planned Deliverables
 
 **Full success:**
-- A python package containing a complete pipeline: data collection, feature engineering, and model training/evaluation.
+- A Python package containing a complete pipeline: data collection, feature engineering, and model training/evaluation.
 - Custom torch implementations of logistic regression and a feedforward neural network, with no use of scikit-learn or other pre-built model libraries. Possibly other models as well, like a CNN.
-- A jupyter notebook demonstrating the full pipeline, including exploratory data analysis, model comparisons, and visualizations.
+- A Jupyter notebook demonstrating the full pipeline, including exploratory data analysis, model comparisons, and visualizations.
 
 **Partial success:**
 - Even if the more powerful models don't outperform logistic regression, which is plausible with our slightly smaller dataset, our deliverable should still include the full data pipeline, the logistic regression baseline with experiments, and an analysis of why the simpler model wins.
@@ -49,6 +49,8 @@ In this section, please state what each group member intends to learn through wo
 I want to deepen my understanding of implementing neural networks from scratch in torch, particularly around the practical challenges of training on small datasets (regularization, class imbalance, overfitting). I also want to learn how to build a clean data pipeline that scrapes, cleans, and aligns data from multiple sources and formats. On the ML theory side, I'm interested in exploring when neural networks actually help over logistic regression and whether ordinal structure in the target variable can be exploited.
 
 ### Maddy
+
+I am excited to get a better understanding of time series modeling in a machine learning context and learn how incorporating lagged weather variables will impact model performance. This project will give me exposure to scraping and cleaning data, and creating a pipeline that will merge the data from different sources accurately and completely. I want to get more experience tuning neural networks and comparing a more complicated model to a simpler linear regression model.
 
 ## Risk Statement
 
