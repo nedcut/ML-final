@@ -4,12 +4,12 @@
 
 Ned Cutler and Maddy Smith
 
-## Abstract (TODO)
+## Abstract
 
 Having a ski mountain on campus is a great resource for Middlebury students, but ski conditions vary greatly, making the trip to the Snow Bowl feel either like a worthwhile commitment or a waste of time. This project will implement a multi-class logistic regression model using a time series of weather data, using factors like temperature, humidity, and precipitation to predict ski conditions on the mountains. We plan to reserve a portion of historical data to compare our predictions to, and will evaluate the accuracy of our model using a confusion matrix, and will compute per-class precision and recall scores.
 
 
-## Motivation and Question (TODO)
+## Motivation and Question
 
 The Middlebury Snowbowl currently lacks a tool for forecasting ski conditions. While the “conditions” section of the website provides the current and forecasted temperature, wind, and humidity, it does not translate these conditions into an explicit measure of ski conditions. Tony Crocker’s “Best Snow” website compiles daily ski conditions from records across Vermont, assigning each day a “grade,” which reflects factors such as powder coverage and terrain availability. 
 
@@ -40,9 +40,7 @@ This project will help students and skiers who visit the mountain make more info
 
 **Compute:** Laptops should be fine, colab possibly. I (Ned) also have a PC with an Nvidia GPU that I can use if needed.
 
-## What You Will Learn (TODO)
-
-In this section, please state what each group member intends to learn through working on the project. You might be thinking of certain algorithms, software packages, version control, project management, effective teamwork, etc.
+## What You Will Learn
 
 ### Ned
 
