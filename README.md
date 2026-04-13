@@ -6,7 +6,7 @@ Ned Cutler and Maddy Smith
 
 ## Abstract
 
-Having a ski mountain on campus is a great resource for Middlebury students, but ski conditions vary greatly, making the trip to the Snow Bowl feel either like a worthwhile commitment or a waste of time. This project will implement a multi-class logistic regression model using a time series of weather data, using factors like temperature, humidity, and precipitation to predict ski conditions on the mountains. We plan to reserve a portion of historical data to compare our predictions to, and will evaluate the accuracy of our model using a confusion matrix, and will compute per-class precision and recall scores.
+Having a ski mountain on campus is a great resource for Middlebury students, but ski conditions vary greatly, making the trip to the Snow Bowl feel either like a worthwhile commitment or a waste of time. This project will implement a multi-class logistic regression model using a time series of weather data, using factors like temperature, humidity, and precipitation to predict ski conditions on the mountains. We plan to reserve a portion of historical data to compare our predictions to, evaluate the accuracy of our model using a confusion matrix, and compute per-class precision and recall scores.
 
 
 ## Motivation and Question
@@ -22,7 +22,7 @@ This project will help students and skiers who visit the mountain make more info
 
 **Full success:**
 - A Python package containing a complete pipeline: data collection, feature engineering, and model training/evaluation.
-- Custom torch implementations of logistic regression and a feedforward neural network, with no use of scikit-learn or other pre-built model libraries. Possibly other models as well, like a CNN.
+- Custom PyTorch implementations of logistic regression and a feedforward neural network, with no use of scikit-learn or other pre-built model libraries. If time permits and results look promising, we may try implementing other models like a CNN.
 - A Jupyter notebook demonstrating the full pipeline, including exploratory data analysis, model comparisons, and visualizations.
 
 **Partial success:**
