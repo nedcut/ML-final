@@ -6,21 +6,17 @@ Ned Cutler and Maddy Smith
 
 ## Abstract (TODO)
 
-In 3-4 sentences, concisely describe:
+Having a ski mountain on campus is a great resource for Middlebury students, but ski conditions vary greatly, making the trip to the Snow Bowl feel either like a worthwhile commitment or a waste of time. This project will implement a multi-class logistic regression model using a time series of weather data, using factors like temperature, humidity, and precipitation to predict ski conditions on the mountains. We plan to reserve a portion of historical data to compare our predictions to, and will evaluate the accuracy of our model using a confusion matrix, and will compute per-class precision and recall scores.
 
-- What problem your project addresses.
-- The overall approach you will use to solve the problem.
-- How you propose to evaluate your success against your stated goals.
 
 ## Motivation and Question (TODO)
 
-Describe your motivation for your project idea. Some (shortened) examples of good types of motivations:
+The Middlebury Snowbowl currently lacks a tool for forecasting ski conditions. While the “conditions” section of the website provides the current and forecasted temperature, wind, and humidity, it does not translate these conditions into an explicit measure of ski conditions. Tony Crocker’s “Best Snow” website compiles daily ski conditions from records across Vermont, assigning each day a “grade,” which reflects factors such as powder coverage and terrain availability. 
 
-- We have a scientific data set for which predictive or exploratory models would help us generate hypotheses.
-- We have user information for which predictive models would help us give users better experiences.
-- We have performance data (e.g. from sports teams) for which predictive models could help us make better decisions.
-- Algorithmic bias is an increasingly urgent challenge as machine learning products proliferate, and we want to explore it more deeply.
-- You should be more specific than these: describe your specific data set (if applicable); your scientific questions; the type of decisions your model could inform; etc.
+In this project, we aim to use Crocker’s “Best Snow” website to build a predictive model that maps weather conditions to ski quality, specifically in the Snowbowl. We will scrape historical data across Vermont and use that historical data to match Crocker’s condition grades. Using a time series framework, we will capture how immediate, as well as recently historical conditions, capture ski quality. We will experiment with different temporal windows to determine the most relevant time horizon for predicting conditions.
+
+This project will help students and skiers who visit the mountain make more informed decisions before deciding to make the trip up to the mountain. Explicit and accurate condition reports can minimize the number of unsatisfactory trips and can help manage condition expectations. This project may also help the Snowbowl create better conditions artificially. A forecast of future conditions could help the Snowbowl anticipate crowd levels and adjust snowmaking accordingly, optimizing resources and enhancing the overall guest experience.
+
 
 ## Planned Deliverables
 
@@ -38,7 +34,9 @@ Describe your motivation for your project idea. Some (shortened) examples of goo
 
 1. Open-Meteo Historical Weather API (open-meteo.com/en/docs/historical-weather-api): Free access to ERA5 reanalysis weather data at any lat/lon coordinate going back to 1940. Returns daily temperature, precipitation, snowfall, snow depth, wind speed, humidity in JSON format.
 
-2. bestsnow.net Vermont Snow Conditions Chart (bestsnow.net/vrmthist.htm): A table of weekly condition grades (A/B/C/D/R) for Vermont ski conditions, covering 26 seasons (1999-2000 through 2024-25), yielding ~650 labeled data points. Grades are based on terrain openness and snow surface quality (powder/packed powder vs. hardpack/ice vs. rain). 
+2. bestsnow.net Vermont Snow Conditions Chart (bestsnow.net/vrmthist.htm): A table of weekly condition grades (A/B/C/D/R) for Vermont ski conditions, covering 26 seasons (1999-2000 through 2024-25), yielding ~650 labeled data points. Grades are based on terrain openness and snow surface quality (powder/packed powder vs. hardpack/ice vs. rain).
+
+3. Middlebury Snowbowl Weather Forecast (https://middleburysnowbowl.com/conditions/): Weekly forecast with temperature, precipitation, wind, and humidity specific to the Middlebury Snowbowl. 
 
 **Compute:** Laptops should be fine, colab possibly. I (Ned) also have a PC with an Nvidia GPU that I can use if needed.
 
