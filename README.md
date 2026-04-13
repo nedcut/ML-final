@@ -26,7 +26,7 @@ Describe your motivation for your project idea. Some (shortened) examples of goo
 
 **Full success:**
 - A python package containing a complete pipeline: data collection, feature engineering, and model training/evaluation.
-- Custom torch implementations of logistic regression and a feedforward neural network, with no use of scikit-learn or other pre-built model libraries. Possibly other models, like a CNN
+- Custom torch implementations of logistic regression and a feedforward neural network, with no use of scikit-learn or other pre-built model libraries. Possibly other models as well, like a CNN.
 - A jupyter notebook demonstrating the full pipeline, including exploratory data analysis, model comparisons, and visualizations.
 
 **Partial success:**
@@ -58,27 +58,31 @@ I want to deepen my understanding of implementing neural networks from scratch i
 
 2. The bestsnow.net condition grades are curated by a single analyst and may contain inconsistencies over a 26-year span. The grading methodology may have shifted subtly over time, and the grades reflect expert-skier preferences (valuing off-piste powder) that don't generalize to all skier types. If the labels are too noisy, no model will achieve strong performance.
 
-## Ethics Statement (TODO)
+## Ethics Statement
 
-All projects we undertake involve decisions about whose interests matter; which problems are important; and which tradeoffs are considered acceptable. Take some time to reflect on the potential impacts of your project on its prospective users and the broader world. Address the following questions:
+1. **Overall impact:** If successful and deployed, this project would give skiers a weather-based tool for independently assessing likely ski conditions without relying on resort-reported snow reports, which have an inherent marketing bias. This promotes transparency and more informed consumer decision-making.
 
-1. What is the overall impact that we would hope to have on the world if our project was successful and deployed?
+2. **Who benefits:** Skiers and snowboarders in Vermont would benefit from more unbiased conditions forecasts. 
 
-2. What groups of people have the potential to benefit from our project?
+3. **Who is is excluded/harmed:** Resorts could potentially be harmed if poor-snow predictions keep skiers away on marginal days. Our data also comes from expert skier preference, so it could be less applicable to beginner/intermediate skiers. Additionally, the dataset covers mainly Vermont's largest, highest snowfall resorts, so predictions might not generalize to smaller areas like the Snow Bowl.
 
-3. What groups of people have the potential to be excluded from benefit or even harmed from our project?
+4. **Will the world become an overall better place:** Yes, if:
+   - Skiers make better decisions (safer driving choices, more satisfying trips, etc.) when they have accurate, unbiased condition information.
+   - The net effect of better informed skiers does not cause a net reduction in overall ski visits, but a redistribution towards days with better conditions.
 
-4. Will the world become an overall better place because we made our project? Describe at least 2 assumptions behind your answer. For example, if your project aims to make it easier to predict crime, your assumptions might include:
+## Tentative Timeline
 
-   - Criminal activity is predictable based on other features of a person or location.
-   - The world is a better place when police are able to perform their roles more efficiently.
+**Weeks 9-10 (by ~April 22):** 
+- Data acquisition and exploratory analysis complete. 
+- Scrape bestsnow.net labels, pull Open-Meteo weather data for all six resort coordinates across all 26 seasons, build the feature engineering pipeline (weekly aggregation), and align labels with features. 
+- Produce EDA notebook with class distribution plots, feature correlation analysis, and a visual exploration of the 26-season condition trend. 
+- Deliverable for checkpoint: a working dataset and initial logistic regression baseline with preliminary accuracy numbers.
 
-If your project involves making decisions or recommendations, then you will also need to consider possible forms of algorithmic bias in your work. Here are some relevant examples:
+**Weeks 10-11 (by ~April 29):** 
+- Implement feedforward neural network in PyTorch. 
+- Run full experiment suite: feature ablation, ordinal vs. categorical framing, lagged condition features, class imbalance handling. 
+- Possibly implement other models like CNN. 
+- Begin writing final blog post and preparing presentation.
 
-- A recipe recommendation app can privilege the cuisines of some locales over others. Will your user search recipes by ingredients? Peanut butter and tomato might seem an odd combination in the context of European cuisine, but is common in many traditional dishes of the African diaspora. A similar set of questions applies to recommendation systems related to style or beauty.
-
-- A sentiment analyzer must be trained on specific languages. What languages will be included? Will diverse dialects be included, or only the “standard” version of the target language? Who would be excluded by such a choice, and how will you communicate about your limitations?
-
-## Tentative Timeline (TODO)
-
-We will have a checkpoint for the project in Week 9 or 10, and then final presentations in Week 12. With this in mind, please describe what you expect to achieve after two and four weeks. Your goal by the two-week check-in should be to have “something that works.” For example, maybe in two weeks you’ll ready to demonstrate the data acquisition pipeline and show some exploratory analysis, and in the last couple weeks you’ll actually implement your machine learning models.
+**Week 12 (by ~May 3):** 
+- Complete analysis, finalize blog post, clean up GitHub repository, deliver presentation.
