@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Scrape weekly Vermont ski-condition labels from bestsnow.net."""
 
 from __future__ import annotations
