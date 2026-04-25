@@ -8,13 +8,11 @@ Original file is located at
 """
 
 import pandas as pd
-import requests
-from functools import reduce
 
-jay_peak = pd.read_csv("https://raw.githubusercontent.com/nedcut/ML-final/cc092ce8980008db6dd3927d091b9cc74ce0edb9/data/raw/jay_peak_weather.csv", skiprows=3)
-sugarbush = pd.read_csv("https://raw.githubusercontent.com/nedcut/ML-final/cc092ce8980008db6dd3927d091b9cc74ce0edb9/data/raw/sugarbush_weather.csv", skiprows=3)
-killington = pd.read_csv("https://raw.githubusercontent.com/nedcut/ML-final/cc092ce8980008db6dd3927d091b9cc74ce0edb9/data/raw/killington_weather.csv", skiprows=3)
-stowe = pd.read_csv("https://raw.githubusercontent.com/nedcut/ML-final/cc092ce8980008db6dd3927d091b9cc74ce0edb9/data/raw/stowe_weather.csv", skiprows=3)
+jay_peak = pd.read_csv("data/raw/jay_peak_weather.csv", skiprows=3)
+sugarbush = pd.read_csv("data/raw/sugarbush_weather.csv", skiprows=3)
+killington = pd.read_csv("data/raw/killington_weather.csv", skiprows=3)
+stowe = pd.read_csv("data/raw/stowe_weather.csv", skiprows=3)
 
 data_frames = {
     "jay_peak": jay_peak,
@@ -36,7 +34,7 @@ for name, df in data_frames.items():
   df["time"] = pd.to_datetime(df["time"])
   df["location"] = name
 
-#Taking the average between resorts
+# taking the average between resorts
 merged_resorts = pd.concat(data_frames.values(), ignore_index=True)
 merged_resorts["day"] = merged_resorts["time"].dt.date
 
@@ -50,17 +48,17 @@ merged_resorts = merged_resorts.groupby(["day", "location"]).agg(
     snowfall = ("snowfall", "sum")
 ).reset_index()
 
-avg_weather = merged_resorts.groupby("day", as_index = False).mean(numeric_only = True).reset_index()
+avg_weather = merged_resorts.groupby("day", as_index = False).mean(numeric_only = True)
 
-#Taking the resort with the highest snowfall, in line with how grades are predicted
+# taking the resort with the highest snowfall, in line with how grades are predicted
 best_snow = (
     merged_resorts
     .assign(priority=(merged_resorts["location"] != "sugarbush"))
     .sort_values(["day", "avg_snow_depth", "priority"], ascending=[True, False, True])
     .drop_duplicates("day")
-).reset_index()
+).reset_index(drop=True)
 
 best_snow = best_snow.drop(columns = "priority")
 
-avg_weather.to_csv("avg_weather.csv")
-best_snow.to_csv("best_snow.csv")
+avg_weather.to_csv("data/processed/avg_weather.csv", index=False)
+best_snow.to_csv("data/processed/best_snow.csv", index=False)

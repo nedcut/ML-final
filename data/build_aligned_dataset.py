@@ -46,6 +46,9 @@ def label_week_end(row):
 
 def load_labels():
     labels = pd.read_csv(LABELS_PATH)
+    labels["original_grade"] = labels["grade"]
+    labels["target_was_rain"] = labels["grade"].eq("R")
+    labels["grade"] = labels["grade"].replace({"R": "D"})
     labels["label_date"] = labels.apply(label_week_end, axis=1)
     labels["weather_window_start"] = labels["label_date"] - pd.Timedelta(days=6)
     labels["weather_window_end"] = labels["label_date"]
@@ -59,7 +62,7 @@ def load_labels():
 
 def load_daily_weather(path):
     weather = pd.read_csv(path)
-    weather = weather.drop(columns=["Unnamed: 0", "index"])
+    weather = weather.drop(columns=["Unnamed: 0", "index"], errors="ignore")
     weather = weather.rename(columns=WEATHER_RENAMES)
     weather["day"] = pd.to_datetime(weather["day"]).dt.date
     return weather.sort_values("day").reset_index(drop=True)
