@@ -16,7 +16,7 @@ SEED = 3
 TEST_SEASONS = 5
 VAL_SEASONS = 3
 
-HIDDEN = 128
+HIDDEN = 64
 LR = 0.01
 MAX_EPOCHS = 300
 PATIENCE = 20
@@ -25,6 +25,14 @@ MIN_DELTA = 1e-5
 GRADE_ORDER = ["D", "C", "B", "A"]
 GRADE_TO_Y = {grade: i for i, grade in enumerate(GRADE_ORDER)} # D=0, C=1, B=2, A=3
 Y_TO_GRADE = {i: grade for grade, i in GRADE_TO_Y.items()}     # 0=D, 1=C, 2=B, 3=A
+
+COST_MATRIX = torch.tensor([
+#pred D    C    B    A
+    [0.0, 0.5, 2.0, 4.0], # actual D
+    [0.5, 0.0, 0.5, 2.0], # actual C
+    [2.0, 0.5, 0.0, 1.0], # actual B
+    [4.0, 2.0, 0.5, 0.0], # actual A
+])
 
 
 class SkiMLP(nn.Module):
@@ -107,13 +115,22 @@ def macro_f1(preds, y):
 def evaluate(model, x, y):
     model.eval()
     with torch.no_grad():
-        preds = model(x).argmax(dim=1)
+        logits = model(x)
+        probs = logits.softmax(dim=1)
+        print(f"probs shape: {probs.shape}, y shape: {y.shape}")
+        preds = probs.argmax(dim=1)
+        cost_matrix = COST_MATRIX.to(y.device)
+        cost_preds = (probs @ cost_matrix).argmin(dim=1)
     return {
         "accuracy": (preds == y).float().mean().item(),
         # if the target is only 1 grade away from prediction (eg predicted B but it's actually A)
         "within_one": ((preds - y).abs() <= 1).float().mean().item(),
         "macro_f1": macro_f1(preds, y),
+        "avg_cost": cost_matrix[y, preds].mean().item(),            # average cost of the model's predictions
+        "cost_accuracy": (cost_preds == y).float().mean().item(),   # accuracy if we choose the class that minimizes expected cost instead of just picking the most likely class
+        "cost_avg_cost": cost_matrix[y, cost_preds].mean().item(),  # average cost if we choose the class that minimizes expected cost instead of just picking the most likely class
         "preds": preds,
+        "cost_preds": cost_preds,
     }
 
 
@@ -155,7 +172,10 @@ def print_metrics(name, metrics):
         f"{name:>4}: "
         f"accuracy={metrics['accuracy']:.3f}, "
         f"macro_f1={metrics['macro_f1']:.3f}, "
-        f"within_one={metrics['within_one']:.3f}"
+        f"within_one={metrics['within_one']:.3f}, "
+        f"avg_cost={metrics['avg_cost']:.3f}, "
+        f"cost_decision_acc={metrics['cost_accuracy']:.3f}, "
+        f"cost_decision_avg_cost={metrics['cost_avg_cost']:.3f}"
     )
 
 
@@ -221,3 +241,10 @@ if __name__ == "__main__":
     ).reindex(index=["A", "B", "C", "D"], columns=["A", "B", "C", "D"], fill_value=0)
     print("\ntest confusion matrix")
     print(confusion)
+
+    cost_confusion = pd.crosstab(
+        pd.Series(test_df["y"].map(Y_TO_GRADE), name="actual"),
+        pd.Series(pd.Series(test_metrics["cost_preds"].numpy()).map(Y_TO_GRADE), name="predicted"),
+    ).reindex(index=["A", "B", "C", "D"], columns=["A", "B", "C", "D"], fill_value=0)
+    print("\ntest confusion matrix using cost-minimizing decisions")
+    print(cost_confusion)
