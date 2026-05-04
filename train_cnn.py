@@ -27,13 +27,7 @@ GRADE_TO_Y = {grade: i for i, grade in enumerate(GRADE_ORDER)} # D=0, C=1, B=2, 
 Y_TO_GRADE = {i: grade for grade, i in GRADE_TO_Y.items()}     # 0=D, 1=C, 2=B, 3=A
 EVAL_GRADE_ORDER = ["A", "B", "C", "D"]
 
-COST_MATRIX = torch.tensor([
-#pred D    C    B    A
-    [0.0, 1.0, 2.0, 3.0], # actual D
-    [1.0, 0.0, 1.0, 2.0], # actual C
-    [2.0, 1.0, 0.0, 1.0], # actual B
-    [3.0, 2.0, 1.0, 0.0], # actual A
-])
+from cost_mat import COST_MATRIX
 
 
 class SkiCNN(nn.Module):

@@ -1,3 +1,39 @@
+"""
+Trains a simple MLP model
+
+Example output:
+
+train seasons:  1999-00 through 2016-17 (510 rows)
+val seasons:  2017-18 through 2019-20 (90 rows)
+test seasons: 2020-21 through 2024-25 (141 rows)
+features: 39
+best epoch: 174
+stopped epoch: 224
+best val loss: 0.7577
+saved checkpoint: data/processed/best_ski_mlp.pt
+train: accuracy=0.743, macro_f1=0.715, within_one=0.975, avg_cost=0.167
+ val: accuracy=0.700, macro_f1=0.683, within_one=0.956, avg_cost=0.217
+test: accuracy=0.709, macro_f1=0.659, within_one=0.957, avg_cost=0.223
+
+test confusion matrix
+predicted   A   B   C   D
+actual                   
+A          15  10   2   1
+B           1  16   4   1
+C           2   5  15   9
+D           0   0   6  54
+
+test cost contribution matrix
+predicted    A    B    C    D
+actual                       
+A          0.0  5.0  4.0  4.0
+B          0.5  0.0  2.0  2.0
+C          4.0  2.5  0.0  4.5
+D          0.0  0.0  3.0  0.0
+test total cost: 31.5
+"""
+
+
 from pathlib import Path
 import copy
 import random
@@ -17,9 +53,9 @@ TEST_SEASONS = 5
 VAL_SEASONS = 3
 
 HIDDEN = 64
-LR = 0.01
-MAX_EPOCHS = 300
-PATIENCE = 20
+LR = 0.001
+MAX_EPOCHS = 500
+PATIENCE = 50
 MIN_DELTA = 1e-5
 
 GRADE_ORDER = ["D", "C", "B", "A"]
@@ -27,13 +63,7 @@ GRADE_TO_Y = {grade: i for i, grade in enumerate(GRADE_ORDER)} # D=0, C=1, B=2, 
 Y_TO_GRADE = {i: grade for grade, i in GRADE_TO_Y.items()}     # 0=D, 1=C, 2=B, 3=A
 EVAL_GRADE_ORDER = ["A", "B", "C", "D"]
 
-COST_MATRIX = torch.tensor([
-#pred D    C    B    A
-    [0.0, 0.5, 2.0, 4.0], # actual D
-    [0.5, 0.0, 0.5, 2.0], # actual C
-    [2.0, 0.5, 0.0, 1.0], # actual B
-    [4.0, 2.0, 0.5, 0.0], # actual A
-])
+from cost_mat import COST_MATRIX
 
 
 class SkiMLP(nn.Module):
