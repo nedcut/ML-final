@@ -25,6 +25,7 @@ MIN_DELTA = 1e-5
 GRADE_ORDER = ["D", "C", "B", "A"]
 GRADE_TO_Y = {grade: i for i, grade in enumerate(GRADE_ORDER)} # D=0, C=1, B=2, A=3
 Y_TO_GRADE = {i: grade for grade, i in GRADE_TO_Y.items()}     # 0=D, 1=C, 2=B, 3=A
+EVAL_GRADE_ORDER = ["A", "B", "C", "D"]
 
 COST_MATRIX = torch.tensor([
 #pred D    C    B    A
@@ -115,22 +116,15 @@ def macro_f1(preds, y):
 def evaluate(model, x, y):
     model.eval()
     with torch.no_grad():
-        logits = model(x)
-        probs = logits.softmax(dim=1)
-        print(f"probs shape: {probs.shape}, y shape: {y.shape}")
-        preds = probs.argmax(dim=1)
+        preds = model(x).argmax(dim=1)
         cost_matrix = COST_MATRIX.to(y.device)
-        cost_preds = (probs @ cost_matrix).argmin(dim=1)
     return {
         "accuracy": (preds == y).float().mean().item(),
         # if the target is only 1 grade away from prediction (eg predicted B but it's actually A)
         "within_one": ((preds - y).abs() <= 1).float().mean().item(),
         "macro_f1": macro_f1(preds, y),
-        "avg_cost": cost_matrix[y, preds].mean().item(),            # average cost of the model's predictions
-        "cost_accuracy": (cost_preds == y).float().mean().item(),   # accuracy if we choose the class that minimizes expected cost instead of just picking the most likely class
-        "cost_avg_cost": cost_matrix[y, cost_preds].mean().item(),  # average cost if we choose the class that minimizes expected cost instead of just picking the most likely class
+        "avg_cost": cost_matrix[y, preds].mean().item(),
         "preds": preds,
-        "cost_preds": cost_preds,
     }
 
 
@@ -173,9 +167,7 @@ def print_metrics(name, metrics):
         f"accuracy={metrics['accuracy']:.3f}, "
         f"macro_f1={metrics['macro_f1']:.3f}, "
         f"within_one={metrics['within_one']:.3f}, "
-        f"avg_cost={metrics['avg_cost']:.3f}, "
-        f"cost_decision_acc={metrics['cost_accuracy']:.3f}, "
-        f"cost_decision_avg_cost={metrics['cost_avg_cost']:.3f}"
+        f"avg_cost={metrics['avg_cost']:.3f}"
     )
 
 
@@ -238,13 +230,13 @@ if __name__ == "__main__":
     confusion = pd.crosstab(
         pd.Series(test_df["y"].map(Y_TO_GRADE), name="actual"),
         pd.Series(pd.Series(test_metrics["preds"].numpy()).map(Y_TO_GRADE), name="predicted"),
-    ).reindex(index=["A", "B", "C", "D"], columns=["A", "B", "C", "D"], fill_value=0)
+    ).reindex(index=EVAL_GRADE_ORDER, columns=EVAL_GRADE_ORDER, fill_value=0)
     print("\ntest confusion matrix")
     print(confusion)
 
-    cost_confusion = pd.crosstab(
-        pd.Series(test_df["y"].map(Y_TO_GRADE), name="actual"),
-        pd.Series(pd.Series(test_metrics["cost_preds"].numpy()).map(Y_TO_GRADE), name="predicted"),
-    ).reindex(index=["A", "B", "C", "D"], columns=["A", "B", "C", "D"], fill_value=0)
-    print("\ntest confusion matrix using cost-minimizing decisions")
-    print(cost_confusion)
+    cost_df = pd.DataFrame(COST_MATRIX.numpy(), index=GRADE_ORDER, columns=GRADE_ORDER)
+    cost_df = cost_df.reindex(index=EVAL_GRADE_ORDER, columns=EVAL_GRADE_ORDER)
+    cost_contribution = confusion * cost_df
+    print("\ntest cost contribution matrix")
+    print(cost_contribution)
+    print(f"test total cost: {cost_contribution.to_numpy().sum():.1f}")
