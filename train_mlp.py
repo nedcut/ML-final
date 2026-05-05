@@ -79,6 +79,16 @@ class SkiMLP(nn.Module):
     def forward(self, x):
         return self.net(x)
 
+class CostLoss(nn.Module):
+  def __init__(self):
+    super().__init__()
+
+  def forward(self, logits, y):
+    ce_loss = F.cross_entropy(logits, y)
+    probs = F.softmax(logits, dim=1)
+    cost_matrix = COST_MATRIX.to(logits.device)
+    expected_cost = (probs * cost_matrix[y]).sum(dim=1).mean()
+    return (1 - COST_LOSS_WEIGHT) * ce_loss + COST_LOSS_WEIGHT * expected_cost
 
 def make_split(df):
     """split data into train, val, test based on season, using the last seasons for test and val"""
@@ -143,16 +153,6 @@ def macro_f1(preds, y):
         scores.append(2 * precision * recall / (precision + recall) if precision + recall else 0.0)
     return float(np.mean(scores))
 
-
-def cost_loss(logits, y):
-    """combines cross-entropy loss with expected cost based on the cost matrix"""
-    ce_loss = F.cross_entropy(logits, y)
-    probs = F.softmax(logits, dim=1)
-    cost_matrix = COST_MATRIX.to(logits.device)
-    expected_cost = (probs * cost_matrix[y]).sum(dim=1).mean()
-    return (1 - COST_LOSS_WEIGHT) * ce_loss + COST_LOSS_WEIGHT * expected_cost
-
-
 def evaluate(model, x, y):
     model.eval()
     with torch.no_grad():
@@ -174,6 +174,7 @@ def train(model, x_train, y_train, x_val, y_val):
     best_epoch = 0
     best_state = copy.deepcopy(model.state_dict())
     bad_checks = 0 # number of consecutive epochs without improvement
+    cost_loss = CostLoss()
 
     for epoch in range(1, MAX_EPOCHS + 1):
         model.train() # need to set train mode for dropout to work
