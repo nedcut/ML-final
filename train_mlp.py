@@ -1,36 +1,36 @@
 """
 Trains a simple MLP model
 
-Example output:
+Example output (current best config):
 
 train seasons:  1999-00 through 2016-17 (510 rows)
 val seasons:  2017-18 through 2019-20 (90 rows)
 test seasons: 2020-21 through 2024-25 (141 rows)
 features: 39
-best epoch: 174
-stopped epoch: 224
-best val loss: 0.7577
+best epoch: 173
+stopped epoch: 223
+best val loss: 0.7200
 saved checkpoint: data/processed/best_ski_mlp.pt
-train: accuracy=0.743, macro_f1=0.715, within_one=0.975, avg_cost=0.167
- val: accuracy=0.700, macro_f1=0.683, within_one=0.956, avg_cost=0.217
-test: accuracy=0.709, macro_f1=0.659, within_one=0.957, avg_cost=0.223
+train: accuracy=0.743, macro_f1=0.716, within_one=0.975, avg_cost=0.167
+ val: accuracy=0.711, macro_f1=0.697, within_one=0.944, avg_cost=0.228
+test: accuracy=0.702, macro_f1=0.649, within_one=0.965, avg_cost=0.216
 
 test confusion matrix
 predicted   A   B   C   D
 actual                   
-A          15  10   2   1
-B           1  16   4   1
+A          15  11   1   1
+B           2  15   4   1
 C           2   5  15   9
 D           0   0   6  54
 
 test cost contribution matrix
 predicted    A    B    C    D
 actual                       
-A          0.0  5.0  4.0  4.0
-B          0.5  0.0  2.0  2.0
+A          0.0  5.5  2.0  4.0
+B          1.0  0.0  2.0  2.0
 C          4.0  2.5  0.0  4.5
 D          0.0  0.0  3.0  0.0
-test total cost: 31.5
+test total cost: 30.5
 """
 
 
@@ -64,6 +64,7 @@ Y_TO_GRADE = {i: grade for grade, i in GRADE_TO_Y.items()}     # 0=D, 1=C, 2=B, 
 EVAL_GRADE_ORDER = ["A", "B", "C", "D"]
 
 from cost_mat import COST_MATRIX
+COST_LOSS_WEIGHT = 0.1
 
 
 class SkiMLP(nn.Module):
@@ -143,6 +144,15 @@ def macro_f1(preds, y):
     return float(np.mean(scores))
 
 
+def cost_loss(logits, y):
+    """combines cross-entropy loss with expected cost based on the cost matrix"""
+    ce_loss = F.cross_entropy(logits, y)
+    probs = F.softmax(logits, dim=1)
+    cost_matrix = COST_MATRIX.to(logits.device)
+    expected_cost = (probs * cost_matrix[y]).sum(dim=1).mean()
+    return (1 - COST_LOSS_WEIGHT) * ce_loss + COST_LOSS_WEIGHT * expected_cost
+
+
 def evaluate(model, x, y):
     model.eval()
     with torch.no_grad():
@@ -168,13 +178,13 @@ def train(model, x_train, y_train, x_val, y_val):
     for epoch in range(1, MAX_EPOCHS + 1):
         model.train() # need to set train mode for dropout to work
         opt.zero_grad()
-        loss = F.cross_entropy(model(x_train), y_train)
+        loss = cost_loss(model(x_train), y_train)
         loss.backward()
         opt.step()
 
         model.eval() # back to eval mode for validation (no dropout, no grad)
         with torch.no_grad():
-            val_loss = float(F.cross_entropy(model(x_val), y_val))
+            val_loss = float(cost_loss(model(x_val), y_val))
 
         if val_loss < best_val_loss - MIN_DELTA:
             best_val_loss = val_loss
@@ -209,6 +219,7 @@ def save_checkpoint(model, feature_cols, best_epoch, stopped_epoch, best_val_los
         "config": {
             "hidden": HIDDEN,
             "lr": LR,
+            "cost_loss_weight": COST_LOSS_WEIGHT,
             "seed": SEED,
             "test_seasons": TEST_SEASONS,
             "val_seasons": VAL_SEASONS,
