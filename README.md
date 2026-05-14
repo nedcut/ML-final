@@ -4,6 +4,26 @@
 
 Ned Cutler and Maddy Smith
 
+## Repository Structure
+
+- `report.ipynb`: final project report notebook.
+- `data/raw/`: raw weather files and the saved Best Snow HTML page.
+- `data/processed/`: processed CSVs and saved model checkpoints.
+- `src/`: importable project source code, including model/training modules and the shared cost matrix.
+- `scripts/`: runnable scripts for scraping labels, preparing data, and training models.
+
+Useful commands from the repository root:
+
+```bash
+uv run python scripts/scrape_labels.py
+uv run python scripts/build_aligned_dataset.py
+uv run python scripts/train_mlp.py
+uv run python scripts/train_cnn.py
+uv run python scripts/train_coral.py
+```
+
+The Python code uses `pandas`, `numpy`, `torch`, `requests`, and `beautifulsoup4`.
+
 ## Abstract
 
 Having a ski mountain on campus is a great resource for Middlebury students, but ski conditions vary greatly, making the trip to the Snow Bowl feel either like a worthwhile commitment or a waste of time. This project will implement a multi-class logistic regression model using a time series of weather data, using factors like temperature, humidity, and precipitation to predict ski conditions on the mountains. We plan to reserve a portion of historical data to compare our predictions to, evaluate the accuracy of our model using a confusion matrix, and compute per-class precision and recall scores.

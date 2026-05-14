@@ -1,32 +1,38 @@
 """
-Trains a simple CORAL-style ordinal model.
+Trains a simple MLP model
 
-The target order is D < C < B < A, encoded as 0, 1, 2, 3. Instead of
-predicting four independent class logits, this model predicts three
-cumulative thresholds: y > D, y > C, and y > B.
-
-Example output (current tuned config):
+Example output (current best config):
 
 train seasons:  1999-00 through 2016-17 (510 rows)
 val seasons:  2017-18 through 2019-20 (90 rows)
 test seasons: 2020-21 through 2024-25 (141 rows)
 features: 39
-best epoch: 335
-stopped epoch: 385
-best val loss: 0.2743
-saved checkpoint: data/processed/best_ski_coral.pt
-train: accuracy=0.729, macro_f1=0.705, within_one=0.992, avg_cost=0.147
- val: accuracy=0.711, macro_f1=0.700, within_one=0.989, avg_cost=0.161
-test: accuracy=0.631, macro_f1=0.538, within_one=0.957, avg_cost=0.248
+best epoch: 173
+stopped epoch: 223
+best val loss: 0.7200
+saved checkpoint: data/processed/best_ski_mlp.pt
+train: accuracy=0.743, macro_f1=0.716, within_one=0.975, avg_cost=0.167
+ val: accuracy=0.711, macro_f1=0.697, within_one=0.944, avg_cost=0.228
+test: accuracy=0.702, macro_f1=0.649, within_one=0.965, avg_cost=0.216
 
 test confusion matrix
 predicted   A   B   C   D
-actual
-A          11  14   3   0
-B           2   8  11   1
-C           1   4  13  13
-D           0   1   2  57
+actual                   
+A          15  11   1   1
+B           2  15   4   1
+C           2   5  15   9
+D           0   0   6  54
+
+test cost contribution matrix
+predicted    A    B    C    D
+actual                       
+A          0.0  5.5  2.0  4.0
+B          1.0  0.0  2.0  2.0
+C          4.0  2.5  0.0  4.5
+D          0.0  0.0  3.0  0.0
+test total cost: 30.5
 """
+
 
 from pathlib import Path
 import copy
@@ -38,54 +44,51 @@ import torch
 from torch import nn
 import torch.nn.functional as F
 
-from cost_mat import COST_MATRIX
-
 
 DATA_PATH = Path("data/processed/vt_condition_weather_aligned.csv")
-CHECKPOINT_PATH = Path("data/processed/best_ski_coral.pt")
+CHECKPOINT_PATH = Path("data/processed/best_ski_mlp.pt")
 SEED = 3
 
 TEST_SEASONS = 5
 VAL_SEASONS = 3
 
-HIDDEN = 16
-DROPOUT = 0.30
-LR = 0.006
-WEIGHT_DECAY = 0.0
+HIDDEN = 64
+LR = 0.001
 MAX_EPOCHS = 500
 PATIENCE = 50
 MIN_DELTA = 1e-5
-PRED_THRESHOLD = 0.60
 
 GRADE_ORDER = ["D", "C", "B", "A"]
 GRADE_TO_Y = {grade: i for i, grade in enumerate(GRADE_ORDER)} # D=0, C=1, B=2, A=3
 Y_TO_GRADE = {i: grade for grade, i in GRADE_TO_Y.items()}     # 0=D, 1=C, 2=B, 3=A
 EVAL_GRADE_ORDER = ["A", "B", "C", "D"]
 
-
-class CoralLayer(nn.Module):
-    def __init__(self, n_features, n_classes):
-        super().__init__()
-        self.shared_weight = nn.Linear(n_features, 1, bias=False)
-        self.bias = nn.Parameter(torch.linspace(1.0, -1.0, n_classes - 1))
-
-    def forward(self, x):
-        return self.shared_weight(x) + self.bias
+from .cost_mat import COST_MATRIX
+COST_LOSS_WEIGHT = 0.1
 
 
-class SkiCoral(nn.Module):
+class SkiMLP(nn.Module):
     def __init__(self, n_features):
         super().__init__()
-        self.features = nn.Sequential(
+        self.net = nn.Sequential(
             nn.Linear(n_features, HIDDEN),
             nn.ReLU(),
-            nn.Dropout(DROPOUT),
+            nn.Linear(HIDDEN, 4), 
         )
-        self.coral = CoralLayer(HIDDEN, len(GRADE_ORDER))
 
     def forward(self, x):
-        return self.coral(self.features(x))
+        return self.net(x)
 
+class CostLoss(nn.Module):
+  def __init__(self):
+    super().__init__()
+
+  def forward(self, logits, y):
+    ce_loss = F.cross_entropy(logits, y)
+    probs = F.softmax(logits, dim=1)
+    cost_matrix = COST_MATRIX.to(logits.device)
+    expected_cost = (probs * cost_matrix[y]).sum(dim=1).mean()
+    return (1 - COST_LOSS_WEIGHT) * ce_loss + COST_LOSS_WEIGHT * expected_cost
 
 def make_split(df):
     """split data into train, val, test based on season, using the last seasons for test and val"""
@@ -116,7 +119,7 @@ def weekly_features(df):
 
 
 def make_tensors(train_df, val_df, test_df, feature_cols):
-    """convert dataframes to tensors, normalizing features based on train_df statistics"""
+    """convert dataframes to tensors, normalizing features based on train__df statistics"""
     train_x = train_df[feature_cols].to_numpy(dtype="float32")
     val_x = val_df[feature_cols].to_numpy(dtype="float32")
     test_x = test_df[feature_cols].to_numpy(dtype="float32")
@@ -139,19 +142,6 @@ def make_tensors(train_df, val_df, test_df, feature_cols):
     )
 
 
-def coral_targets(y):
-    thresholds = torch.arange(len(GRADE_ORDER) - 1, device=y.device)
-    return (y[:, None] > thresholds[None, :]).float()
-
-
-def coral_loss(logits, y):
-    return F.binary_cross_entropy_with_logits(logits, coral_targets(y))
-
-
-def coral_preds(logits):
-    return (torch.sigmoid(logits) > PRED_THRESHOLD).sum(dim=1)
-
-
 def macro_f1(preds, y):
     scores = []
     for cls in range(4):
@@ -163,11 +153,10 @@ def macro_f1(preds, y):
         scores.append(2 * precision * recall / (precision + recall) if precision + recall else 0.0)
     return float(np.mean(scores))
 
-
 def evaluate(model, x, y):
     model.eval()
     with torch.no_grad():
-        preds = coral_preds(model(x))
+        preds = model(x).argmax(dim=1)
         cost_matrix = COST_MATRIX.to(y.device)
     return {
         "accuracy": (preds == y).float().mean().item(),
@@ -180,22 +169,23 @@ def evaluate(model, x, y):
 
 
 def train(model, x_train, y_train, x_val, y_val):
-    opt = torch.optim.Adam(model.parameters(), lr=LR, weight_decay=WEIGHT_DECAY)
+    opt = torch.optim.Adam(model.parameters(), lr=LR)
     best_val_loss = float("inf")
     best_epoch = 0
     best_state = copy.deepcopy(model.state_dict())
     bad_checks = 0 # number of consecutive epochs without improvement
+    cost_loss = CostLoss()
 
     for epoch in range(1, MAX_EPOCHS + 1):
-        model.train()
+        model.train() # need to set train mode for dropout to work
         opt.zero_grad()
-        loss = coral_loss(model(x_train), y_train)
+        loss = cost_loss(model(x_train), y_train)
         loss.backward()
         opt.step()
 
-        model.eval()
+        model.eval() # back to eval mode for validation (no dropout, no grad)
         with torch.no_grad():
-            val_loss = float(coral_loss(model(x_val), y_val))
+            val_loss = float(cost_loss(model(x_val), y_val))
 
         if val_loss < best_val_loss - MIN_DELTA:
             best_val_loss = val_loss
@@ -206,7 +196,7 @@ def train(model, x_train, y_train, x_val, y_val):
             bad_checks += 1
 
         if bad_checks >= PATIENCE:
-            break
+            break # stop early
 
     model.load_state_dict(best_state)
     return best_epoch, epoch, best_val_loss
@@ -229,10 +219,8 @@ def save_checkpoint(model, feature_cols, best_epoch, stopped_epoch, best_val_los
         "grade_order": GRADE_ORDER,
         "config": {
             "hidden": HIDDEN,
-            "dropout": DROPOUT,
             "lr": LR,
-            "weight_decay": WEIGHT_DECAY,
-            "pred_threshold": PRED_THRESHOLD,
+            "cost_loss_weight": COST_LOSS_WEIGHT,
             "seed": SEED,
             "test_seasons": TEST_SEASONS,
             "val_seasons": VAL_SEASONS,
@@ -265,7 +253,7 @@ if __name__ == "__main__":
         feature_cols,
     )
 
-    model = SkiCoral(x_train.shape[1])
+    model = SkiMLP(x_train.shape[1])
     best_epoch, stopped_epoch, best_val_loss = train(model, x_train, y_train, x_val, y_val)
 
     print(f"best epoch: {best_epoch}")

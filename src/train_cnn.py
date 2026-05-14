@@ -27,7 +27,7 @@ GRADE_TO_Y = {grade: i for i, grade in enumerate(GRADE_ORDER)} # D=0, C=1, B=2, 
 Y_TO_GRADE = {i: grade for grade, i in GRADE_TO_Y.items()}     # 0=D, 1=C, 2=B, 3=A
 EVAL_GRADE_ORDER = ["A", "B", "C", "D"]
 
-from cost_mat import COST_MATRIX
+from .cost_mat import COST_MATRIX
 
 
 class SkiCNN(nn.Module):
@@ -215,10 +215,6 @@ if __name__ == "__main__":
     )
 
     model = SkiCNN(x_train.shape[-1])
-
-    from torchinfo import summary
-    print(summary(model, input_size=(1, 1, x_train.shape[-1])))
-
 
     best_epoch, stopped_epoch, best_val_loss = train(model, x_train, y_train, x_val, y_val)
 
